@@ -126,13 +126,13 @@ static unsigned long long kMCMediaCacheMaxSize;
     NSArray *sortedPaths = [subPaths sortedArrayUsingComparator:^(NSString *subPath1, NSString *subPath2) {
         NSString *filePath1 = [dirPath stringByAppendingPathComponent:subPath1];
         NSString *filePath2 = [dirPath stringByAppendingPathComponent:subPath2];
-        return [[self _vi_creationDataOfFilePath:filePath1] compare:[self _vi_creationDataOfFilePath:filePath2]];
+        return [[self _vi_creationDateOfFilePath:filePath1] compare:[self _vi_creationDateOfFilePath:filePath2]];
     }];
 
     return sortedPaths;
 }
 
-+ (id)_vi_creationDataOfFilePath:(NSString *)filePath {
++ (id)_vi_creationDateOfFilePath:(NSString *)filePath {
     NSDictionary *fileInfo = [[NSFileManager defaultManager] attributesOfItemAtPath:filePath error:nil];
     return [fileInfo objectForKey:NSFileCreationDate];
 }
