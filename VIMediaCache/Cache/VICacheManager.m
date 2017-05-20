@@ -90,10 +90,10 @@ static unsigned long long kMCMediaCacheMaxSize;
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSString *cacheDirectory = [self cacheDirectory];
 
-    NSArray *files = [fileManager contentsOfDirectoryAtPath:cacheDirectory error:error];
-    if (files) {
+    NSArray *filePaths = [self _vi_sortedFilePathsOfDirectoryPath:cacheDirectory];
+    if (filePaths.count) {
         unsigned long long cleanedSize = 0;
-        for (NSString *path in files) {
+        for (NSString *path in filePaths) {
             NSString *filePath = [cacheDirectory stringByAppendingPathComponent:path];
             if ([downloadingFiles containsObject:filePath]) {
                 continue;
@@ -114,6 +114,25 @@ static unsigned long long kMCMediaCacheMaxSize;
             }
         }
     }
+}
+
+/**
+ Get file path array of the dir sorted by `NSFileCreationDate` in ascending order.
+ */
++ (NSArray<NSString *> *)_vi_sortedFilePathsOfDirectoryPath:(NSString *)dirPath {
+    NSArray *subPaths = [[NSFileManager defaultManager] subpathsAtPath:dirPath];
+    NSArray *sortedPaths = [subPaths sortedArrayUsingComparator:^(NSString *subPath1, NSString *subPath2) {
+        NSString *filePath1 = [dirPath stringByAppendingPathComponent:subPath1];
+        NSString *filePath2 = [dirPath stringByAppendingPathComponent:subPath2];
+        return [[self _vi_creationDataOfFilePath:filePath1] compare:[self _vi_creationDataOfFilePath:filePath2]];
+    }];
+
+    return sortedPaths;
+}
+
++ (id)_vi_creationDataOfFilePath:(NSString *)filePath {
+    NSDictionary *fileInfo = [[NSFileManager defaultManager] attributesOfItemAtPath:filePath error:nil];
+    return [fileInfo objectForKey:NSFileCreationDate];
 }
 
 + (void)cleanCacheForURL:(NSURL *)url error:(NSError **)error {
