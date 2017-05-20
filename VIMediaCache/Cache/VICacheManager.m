@@ -17,6 +17,7 @@ NSString *VICacheFinishedErrorKey = @"VICacheFinishedErrorKey";
 
 static NSString *kMCMediaCacheDirectory;
 static NSTimeInterval kMCMediaCacheNotifyInterval;
+static unsigned long long kMCMediaCacheMaxSize;
 
 @implementation VICacheManager
 
@@ -25,8 +26,11 @@ static NSTimeInterval kMCMediaCacheNotifyInterval;
     dispatch_once(&onceToken, ^{
         [self setCacheDirectory:[NSTemporaryDirectory() stringByAppendingPathComponent:@"vimedia"]];
         [self setCacheUpdateNotifyInterval:0.1];
+        [self setMaxCacheSize: 1024 * 512];
     });
 }
+
+#pragma mark - Getter & Setter
 
 + (void)setCacheDirectory:(NSString *)cacheDirectory {
     kMCMediaCacheDirectory = cacheDirectory;
@@ -36,12 +40,20 @@ static NSTimeInterval kMCMediaCacheNotifyInterval;
     return kMCMediaCacheDirectory;
 }
 
++ (NSTimeInterval)cacheUpdateNotifyInterval {
+    return kMCMediaCacheNotifyInterval;
+}
+
 + (void)setCacheUpdateNotifyInterval:(NSTimeInterval)interval {
     kMCMediaCacheNotifyInterval = interval;
 }
 
-+ (NSTimeInterval)cacheUpdateNotifyInterval {
-    return kMCMediaCacheNotifyInterval;
++ (unsigned long long)maxCacheSize {
+    return kMCMediaCacheMaxSize;
+}
+
++ (void)setMaxCacheSize:(unsigned long long)size {
+    kMCMediaCacheMaxSize = size;
 }
 
 + (NSString *)cachedFilePathForURL:(NSURL *)url {
@@ -54,27 +66,17 @@ static NSTimeInterval kMCMediaCacheNotifyInterval;
     return configuration;
 }
 
-+ (unsigned long long)calculateCachedSizeWithError:(NSError **)error {
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    NSString *cacheDirectory = [self cacheDirectory];
-    NSArray *files = [fileManager contentsOfDirectoryAtPath:cacheDirectory error:error];
-    unsigned long long size = 0;
-    if (files) {
-        for (NSString *path in files) {
-            NSString *filePath = [cacheDirectory stringByAppendingPathComponent:path];
-            NSDictionary<NSFileAttributeKey, id> *attribute = [fileManager attributesOfItemAtPath:filePath error:error];
-            if (!attribute) {
-                size = -1;
-                break;
-            }
-            
-            size += [attribute fileSize];
-        }
-    }
-    return size;
-}
+#pragma mark - Cache Clean
 
 + (void)cleanAllCacheWithError:(NSError **)error {
+    [self cleanCacheWithSize:LONG_MAX error:error];
+}
+
++ (void)cleanCacheWithSize:(unsigned long long)size error:(NSError **)error {
+    if (size <= 0) {
+        return;
+    }
+
     // Find downloaing file
     NSMutableSet *downloadingFiles = [NSMutableSet set];
     [[[VIMediaDownloaderStatus shared] urls] enumerateObjectsUsingBlock:^(NSURL * _Nonnull obj, BOOL * _Nonnull stop) {
@@ -83,19 +85,31 @@ static NSTimeInterval kMCMediaCacheNotifyInterval;
         NSString *configurationPath = [VICacheConfiguration configurationFilePathForFilePath:file];
         [downloadingFiles addObject:configurationPath];
     }];
-    
+
     // Remove files
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSString *cacheDirectory = [self cacheDirectory];
-    
+
     NSArray *files = [fileManager contentsOfDirectoryAtPath:cacheDirectory error:error];
     if (files) {
+        unsigned long long cleanedSize = 0;
         for (NSString *path in files) {
             NSString *filePath = [cacheDirectory stringByAppendingPathComponent:path];
             if ([downloadingFiles containsObject:filePath]) {
                 continue;
             }
+
+            unsigned long long aSize = [self _vi_sizeOfFileManager:fileManager filePath:filePath error:error];
+            if (aSize == -1) {
+                break;
+            }
+
             if (![fileManager removeItemAtPath:filePath error:error]) {
+                break;
+            }
+
+            cleanedSize += aSize;
+            if (cleanedSize >= size) {
                 break;
             }
         }
@@ -108,16 +122,16 @@ static NSTimeInterval kMCMediaCacheNotifyInterval;
         *error = [NSError errorWithDomain:@"com.mediadownload" code:2 userInfo:@{NSLocalizedDescriptionKey: description}];
         return;
     }
-    
+
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSString *filePath = [self cachedFilePathForURL:url];
-    
+
     if ([fileManager fileExistsAtPath:filePath]) {
         if (![fileManager removeItemAtPath:filePath error:error]) {
             return;
         }
     }
-    
+
     NSString *configurationPath = [VICacheConfiguration configurationFilePathForFilePath:filePath];
     if ([fileManager fileExistsAtPath:configurationPath]) {
         if (![fileManager removeItemAtPath:configurationPath error:error]) {
@@ -126,9 +140,39 @@ static NSTimeInterval kMCMediaCacheNotifyInterval;
     }
 }
 
+#pragma mark - Utils
+
++ (unsigned long long)calculateCachedSizeWithError:(NSError **)error {
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSString *cacheDirectory = [self cacheDirectory];
+    NSArray *files = [fileManager contentsOfDirectoryAtPath:cacheDirectory error:error];
+    unsigned long long size = 0;
+    if (files) {
+        for (NSString *path in files) {
+            NSString *filePath = [cacheDirectory stringByAppendingPathComponent:path];
+            unsigned long long aSize = [self _vi_sizeOfFileManager:fileManager filePath:filePath error:error];
+            if (aSize == -1) {
+                size = -1;
+                break;
+            }
+
+            size += aSize;
+        }
+    }
+    return size;
+}
+
++ (unsigned long long)_vi_sizeOfFileManager:(NSFileManager *)fm filePath:(NSString *)filePath error:(NSError **)error {
+    NSDictionary<NSFileAttributeKey, id> *attribute = [fm attributesOfItemAtPath:filePath error:error];
+    if (!attribute) {
+        return -1;
+    }
+    return [attribute fileSize];
+}
+
 + (BOOL)addCacheFile:(NSString *)filePath forURL:(NSURL *)url error:(NSError **)error {
     NSFileManager *fileManager = [NSFileManager defaultManager];
-    
+
     NSString *cachePath = [VICacheManager cachedFilePathForURL:url];
     NSString *cacheFolder = [cachePath stringByDeletingLastPathComponent];
     if (![fileManager fileExistsAtPath:cacheFolder]) {
@@ -139,11 +183,11 @@ static NSTimeInterval kMCMediaCacheNotifyInterval;
             return NO;
         }
     }
-    
+
     if (![fileManager copyItemAtPath:filePath toPath:cachePath error:error]) {
         return NO;
     }
-    
+
     if (![VICacheConfiguration createAndSaveDownloadedConfigurationForURL:url error:error]) {
         [fileManager removeItemAtPath:cachePath error:nil]; // if remove failed, there is nothing we can do.
         return NO;
