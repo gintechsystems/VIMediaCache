@@ -72,9 +72,9 @@ static unsigned long long kMCMediaCacheMaxSize;
     [self cleanCacheWithSize:LONG_MAX error:error];
 }
 
-+ (void)cleanCacheWithSize:(unsigned long long)size error:(NSError **)error {
++ (unsigned long long)cleanCacheWithSize:(unsigned long long)size error:(NSError **)error {
     if (size <= 0) {
-        return;
+        return 0;
     }
 
     // Find downloaing file
@@ -89,10 +89,10 @@ static unsigned long long kMCMediaCacheMaxSize;
     // Remove files
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSString *cacheDirectory = [self cacheDirectory];
-
     NSArray *filePaths = [self _vi_sortedFilePathsOfDirectoryPath:cacheDirectory];
+
+    unsigned long long cleanedSize = 0;
     if (filePaths.count) {
-        unsigned long long cleanedSize = 0;
         for (NSString *path in filePaths) {
             NSString *filePath = [cacheDirectory stringByAppendingPathComponent:path];
             if ([downloadingFiles containsObject:filePath]) {
@@ -114,6 +114,8 @@ static unsigned long long kMCMediaCacheMaxSize;
             }
         }
     }
+
+    return cleanedSize;
 }
 
 /**

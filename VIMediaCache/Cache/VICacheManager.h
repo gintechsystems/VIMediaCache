@@ -58,10 +58,10 @@ extern NSString *VICacheFinishedErrorKey;
  Clean cache with specified `size` to be cleaned.
 
  @param size size of space you want to clean.
- 
+ @return cleaned size.
  - Note: the clean operation is processed in acsending order by `NSFileCreationDate`.
  */
-+ (void)cleanCacheWithSize:(unsigned long long)size error:(NSError **)error;
++ (unsigned long long)cleanCacheWithSize:(unsigned long long)size error:(NSError **)error;
 + (void)cleanAllCacheWithError:(NSError **)error;
 + (void)cleanCacheForURL:(NSURL *)url error:(NSError **)error;
 
