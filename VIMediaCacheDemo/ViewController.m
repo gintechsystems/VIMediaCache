@@ -40,8 +40,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    [self cleanCache];
-    
+//    [self cleanCache];
+
     
 //    NSURL *url = [NSURL URLWithString:@"https://mvvideo5.meitudata.com/56ea0e90d6cb2653.mp4"];
 //    VIMediaDownloader *downloader = [[VIMediaDownloader alloc] initWithURL:url];

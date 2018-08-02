@@ -29,6 +29,18 @@ extern NSString *VICacheFinishedErrorKey;
 + (void)setCacheUpdateNotifyInterval:(NSTimeInterval)interval;
 + (NSTimeInterval)cacheUpdateNotifyInterval;
 
+
+/**
+ Max size of cache. Default is 512MB.
+ 
+ - Note: If it reaches max size when saving data, `VICacheManager` will delete previous data until the space is
+ enough for incoming data.
+
+ @return max size of cache in Byte.
+ */
++ (unsigned long long)maxCacheSize;
++ (void)setMaxCacheSize:(unsigned long long)size;
+
 + (NSString *)cachedFilePathForURL:(NSURL *)url;
 + (VICacheConfiguration *)cacheConfigurationForURL:(NSURL *)url;
 
@@ -42,6 +54,16 @@ extern NSString *VICacheFinishedErrorKey;
  @return files size, respresent by `byte`, if error occurs, return -1
  */
 + (unsigned long long)calculateCachedSizeWithError:(NSError **)error;
+
+
+/**
+ Clean cache with specified `size` to be cleaned.
+
+ @param size size of space you want to clean.
+ @return cleaned size.
+ - Note: the clean operation is processed in acsending order by `NSFileCreationDate`.
+ */
++ (unsigned long long)cleanCacheWithSize:(unsigned long long)size error:(NSError **)error;
 + (void)cleanAllCacheWithError:(NSError **)error;
 + (void)cleanCacheForURL:(NSURL *)url error:(NSError **)error;
 

@@ -30,6 +30,8 @@ static NSString *VIMediaCacheErrorDoamin = @"com.vimediacache";
 @property (nonatomic) float writeBytes;
 @property (nonatomic) BOOL writting;
 
+@property (nonatomic, assign) unsigned long long leftSpace;
+
 @end
 
 @implementation VIMediaCacheWorker
@@ -47,6 +49,7 @@ static NSString *VIMediaCacheErrorDoamin = @"com.vimediacache";
         NSString *path = [VICacheManager cachedFilePathForURL:url];
         NSFileManager *fileManager = [NSFileManager defaultManager];
         _filePath = path;
+        _leftSpace = 0;
         NSError *error;
         NSString *cacheFolder = [path stringByDeletingLastPathComponent];
         if (![fileManager fileExistsAtPath:cacheFolder]) {
@@ -66,9 +69,14 @@ static NSString *VIMediaCacheErrorDoamin = @"com.vimediacache";
                 _writeFileHandle = [NSFileHandle fileHandleForWritingToURL:fileURL error:&error];
                 _internalCacheConfiguration = [VICacheConfiguration configurationWithFilePath:path];
                 _internalCacheConfiguration.url = url;
+
+                unsigned long long usedSpace = [VICacheManager calculateCachedSizeWithError:&error];
+                if (!error) {
+                    _leftSpace = [VICacheManager maxCacheSize] >= usedSpace ? [VICacheManager maxCacheSize] - usedSpace : 0;
+                }
             }
         }
-        
+
         _setupError = error;
     }
     return self;
@@ -218,6 +226,19 @@ static NSString *VIMediaCacheErrorDoamin = @"com.vimediacache";
         NSTimeInterval time = [[NSDate date] timeIntervalSinceDate:self.startWriteDate];
         [self.internalCacheConfiguration addDownloadedBytes:self.writeBytes spent:time];
     }
+
+    // Free some cache if needed.
+    if (_leftSpace < _writeBytes) {
+        NSError *error;
+        unsigned long long cleanedSize = [VICacheManager cleanCacheWithSize:_writeBytes error:&error];
+        if (error) {
+            return;
+        }
+        self.leftSpace += cleanedSize;
+
+        NSAssert(_leftSpace >= _writeBytes, @"cleanCacheWithSize:error: method error.");
+    }
+    self.leftSpace -= _writeBytes;
 }
 
 #pragma mark - Notification
