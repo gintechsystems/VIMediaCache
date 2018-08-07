@@ -28,7 +28,7 @@ static NSString *(^kMCFileNameRules)(NSURL *url);
     dispatch_once(&onceToken, ^{
         [self setCacheDirectory:[NSTemporaryDirectory() stringByAppendingPathComponent:@"vimedia"]];
         [self setCacheUpdateNotifyInterval:0.1];
-        [self setMaxCacheSize: 1024 * 512];
+        [self setMaxCacheSize: 512 * 1024 * 1024];
     });
 }
 
