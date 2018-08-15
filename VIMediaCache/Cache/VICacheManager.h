@@ -55,7 +55,6 @@ extern NSString *VICacheFinishedErrorKey;
  */
 + (unsigned long long)calculateCachedSizeWithError:(NSError **)error;
 
-
 /**
  Clean cache with specified `size` to be cleaned.
 

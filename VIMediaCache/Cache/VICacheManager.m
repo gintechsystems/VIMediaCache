@@ -74,6 +74,9 @@ static NSString *(^kMCFileNameRules)(NSURL *url);
 }
 
 + (VICacheConfiguration *)cacheConfigurationForURL:(NSURL *)url {
+    if (!url || url.absoluteString.length < 1) {
+        return nil;
+    }
     NSString *filePath = [self cachedFilePathForURL:url];
     VICacheConfiguration *configuration = [VICacheConfiguration configurationWithFilePath:filePath];
     return configuration;
@@ -112,14 +115,7 @@ static NSString *(^kMCFileNameRules)(NSURL *url);
                 continue;
             }
 
-            unsigned long long aSize = [self _vi_sizeOfFileManager:fileManager filePath:filePath error:error];
-            if (aSize == -1) {
-                break;
-            }
-
-            if (![fileManager removeItemAtPath:filePath error:error]) {
-                break;
-            }
+            unsigned long long aSize = [self removeFilePair:filePath withFileManager:fileManager];
 
             cleanedSize += aSize;
             if (cleanedSize >= size) {
@@ -129,6 +125,31 @@ static NSString *(^kMCFileNameRules)(NSURL *url);
     }
 
     return cleanedSize;
+}
+
+
+/**
+ Remove cache file and its configuration file, no matter whether the parameter "filePath" is.
+
+ @param filePath cache file or configuration file are both ok.
+ @param fileManager
+ @return cache file size removed, without configuration file size.
+ */
++ (unsigned long long)removeFilePair:(NSString *)filePath withFileManager:(NSFileManager *)fileManager {
+    NSString *configFilePath;
+    if ([VICacheConfiguration isConfigurationFile:filePath]) {
+        configFilePath = filePath;
+        filePath = [VICacheConfiguration cacheFilePathForConfigurationFilePath:filePath];
+    } else {
+        configFilePath = [VICacheConfiguration configurationFilePathForFilePath:filePath];
+    }
+    [fileManager removeItemAtPath:configFilePath error:nil];
+    __block unsigned long long removedSize = [self _vi_sizeOfFileManager:fileManager filePath:filePath error:nil];
+    NSError *error;
+    if (![fileManager removeItemAtPath:filePath error:&error]) {
+        return 0;
+    }
+    return removedSize;
 }
 
 /**
@@ -185,6 +206,9 @@ static NSString *(^kMCFileNameRules)(NSURL *url);
     unsigned long long size = 0;
     if (files) {
         for (NSString *path in files) {
+            if ([VICacheConfiguration isConfigurationFile:path]) {
+                continue;
+            }
             NSString *filePath = [cacheDirectory stringByAppendingPathComponent:path];
             unsigned long long aSize = [self _vi_sizeOfFileManager:fileManager filePath:filePath error:error];
             if (aSize == -1) {

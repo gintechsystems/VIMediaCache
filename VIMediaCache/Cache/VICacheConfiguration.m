@@ -15,6 +15,7 @@ static NSString *kCacheFragmentsKey = @"kCacheFragmentsKey";
 static NSString *kDownloadInfoKey = @"kDownloadInfoKey";
 static NSString *kContentInfoKey = @"kContentInfoKey";
 static NSString *kURLKey = @"kURLKey";
+static const NSString *kConfigurationFileExtension = @"mt_cfg";
 
 @interface VICacheConfiguration () <NSCoding>
 
@@ -41,7 +42,20 @@ static NSString *kURLKey = @"kURLKey";
 }
 
 + (NSString *)configurationFilePathForFilePath:(NSString *)filePath {
-    return [filePath stringByAppendingPathExtension:@"mt_cfg"];
+    return [filePath stringByAppendingPathExtension:kConfigurationFileExtension];
+}
+
++ (NSString *)cacheFilePathForConfigurationFilePath:(NSString *)filePath {
+    return [filePath stringByDeletingPathExtension];
+}
+
++ (BOOL)isConfigurationFile:(NSString *)filePath {
+    if (!filePath || filePath.length < 1) {
+        return NO;
+    }
+    NSString *ext = [NSString stringWithFormat:@".%@", kConfigurationFileExtension];
+    NSRange range = [filePath rangeOfString:ext options:NSCaseInsensitiveSearch | NSBackwardsSearch];
+    return range.location != NSNotFound && range.location == filePath.length - ext.length;
 }
 
 - (NSArray<NSValue *> *)internalCacheFragments {

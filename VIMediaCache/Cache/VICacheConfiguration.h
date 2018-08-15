@@ -12,6 +12,8 @@
 @interface VICacheConfiguration : NSObject <NSCopying>
 
 + (NSString *)configurationFilePathForFilePath:(NSString *)filePath;
++ (NSString *)cacheFilePathForConfigurationFilePath:(NSString *)filePath;
++ (BOOL)isConfigurationFile:(NSString *)filePath;
 
 + (instancetype)configurationWithFilePath:(NSString *)filePath;
 
