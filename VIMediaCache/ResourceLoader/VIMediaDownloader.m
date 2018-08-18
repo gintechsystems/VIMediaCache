@@ -280,7 +280,14 @@ didReceiveResponse:(NSURLResponse *)response
     if (self.isCancelled) {
         return;
     }
+
+    self.startOffset += data.length;
+    if ([self.delegate respondsToSelector:@selector(actionWorker:didReceiveData:isLocal:)]) {
+        [self.delegate actionWorker:self didReceiveData:data isLocal:NO];
+    }
     
+    [self notifyDownloadProgressWithFlush:NO finished:NO];
+
     if (self.canSaveToCache) {
         NSRange range = NSMakeRange(self.startOffset, data.length);
         NSError *error;
@@ -294,12 +301,6 @@ didReceiveResponse:(NSURLResponse *)response
         [self.cacheWorker save];
     }
     
-    self.startOffset += data.length;
-    if ([self.delegate respondsToSelector:@selector(actionWorker:didReceiveData:isLocal:)]) {
-        [self.delegate actionWorker:self didReceiveData:data isLocal:NO];
-    }
-    
-    [self notifyDownloadProgressWithFlush:NO finished:NO];
 }
 
 - (void)URLSession:(NSURLSession *)session

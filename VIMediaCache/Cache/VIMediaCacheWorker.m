@@ -31,6 +31,8 @@ static NSString *VIMediaCacheErrorDoamin = @"com.vimediacache";
 @property (nonatomic) BOOL writting;
 
 @property (nonatomic, assign) unsigned long long leftSpace;
+@property (nonatomic, strong) dispatch_queue_t fileWriteQueue;
+@property (nonatomic, strong) dispatch_queue_t fileReadQueue;
 
 @end
 
@@ -65,10 +67,12 @@ static NSString *VIMediaCacheErrorDoamin = @"com.vimediacache";
             }
             NSURL *fileURL = [NSURL fileURLWithPath:path];
             _readFileHandle = [NSFileHandle fileHandleForReadingFromURL:fileURL error:&error];
+            _fileReadQueue = dispatch_queue_create("vicache_a_file_read_queue", NULL);
             if (!error) {
                 _writeFileHandle = [NSFileHandle fileHandleForWritingToURL:fileURL error:&error];
                 _internalCacheConfiguration = [VICacheConfiguration configurationWithFilePath:path];
                 _internalCacheConfiguration.url = url;
+                _fileWriteQueue = dispatch_queue_create("vicache_a_file_write_queue", NULL);
 
                 unsigned long long usedSpace = [VICacheManager calculateCachedSizeWithError:&error];
                 if (!error) {
@@ -87,7 +91,7 @@ static NSString *VIMediaCacheErrorDoamin = @"com.vimediacache";
 }
 
 - (void)cacheData:(NSData *)data forRange:(NSRange)range error:(NSError **)error {
-    @synchronized(self.writeFileHandle) {
+    dispatch_async(self.fileWriteQueue, ^{
         @try {
             [self.writeFileHandle seekToFileOffset:range.location];
             [self.writeFileHandle writeData:data];
@@ -97,21 +101,21 @@ static NSString *VIMediaCacheErrorDoamin = @"com.vimediacache";
             NSLog(@"write to file error");
             *error = [NSError errorWithDomain:exception.name code:123 userInfo:@{NSLocalizedDescriptionKey: exception.reason, @"exception": exception}];
         }
-    }
+    });
 }
 
 - (NSData *)cachedDataForRange:(NSRange)range error:(NSError **)error {
-    @synchronized(self.readFileHandle) {
+    __block NSData *data;
+    dispatch_sync(self.fileReadQueue, ^{
         @try {
             [self.readFileHandle seekToFileOffset:range.location];
-            NSData *data = [self.readFileHandle readDataOfLength:range.length]; // 空数据也会返回，所以如果 range 错误，会导致播放失效
-            return data;
+            data = [self.readFileHandle readDataOfLength:range.length]; // 空数据也会返回，所以如果 range 错误，会导致播放失效
         } @catch (NSException *exception) {
             NSLog(@"read cached data error %@",exception);
             *error = [NSError errorWithDomain:exception.name code:123 userInfo:@{NSLocalizedDescriptionKey: exception.reason, @"exception": exception}];
         }
-    }
-    return nil;
+    });
+    return data;
 }
 
 - (NSArray<VICacheAction *> *)cachedDataActionsForRange:(NSRange)range {
@@ -204,10 +208,14 @@ static NSString *VIMediaCacheErrorDoamin = @"com.vimediacache";
 }
 
 - (void)save {
-    @synchronized (self.writeFileHandle) {
-        [self.writeFileHandle synchronizeFile];
-        [self.internalCacheConfiguration save];
-    }
+    dispatch_async(self.fileWriteQueue, ^{
+        @try {
+            [self.writeFileHandle synchronizeFile];
+            [self.internalCacheConfiguration save];
+        } @catch (NSException *exception) {
+            NSLog(@"save data error %@", exception);
+        }
+    });
 }
 
 - (void)startWritting {
@@ -220,25 +228,27 @@ static NSString *VIMediaCacheErrorDoamin = @"com.vimediacache";
 }
 
 - (void)finishWritting {
-    if (self.writting) {
-        self.writting = NO;
-        [[NSNotificationCenter defaultCenter] removeObserver:self];
-        NSTimeInterval time = [[NSDate date] timeIntervalSinceDate:self.startWriteDate];
-        [self.internalCacheConfiguration addDownloadedBytes:self.writeBytes spent:time];
-    }
-
-    // Free some cache if needed.
-    if (_leftSpace < _writeBytes) {
-        NSError *error;
-        unsigned long long cleanedSize = [VICacheManager cleanCacheWithSize:_writeBytes error:&error];
-        if (error) {
-            return;
+    dispatch_async(self.fileWriteQueue, ^{
+        if (self.writting) {
+            self.writting = NO;
+            [[NSNotificationCenter defaultCenter] removeObserver:self];
+            NSTimeInterval time = [[NSDate date] timeIntervalSinceDate:self.startWriteDate];
+            [self.internalCacheConfiguration addDownloadedBytes:self.writeBytes spent:time];
         }
-        self.leftSpace += cleanedSize;
-
-        NSAssert(_leftSpace >= _writeBytes, @"cleanCacheWithSize:error: method error.");
-    }
-    self.leftSpace -= _writeBytes;
+        
+        // Free some cache if needed.
+        if (_leftSpace < _writeBytes) {
+            NSError *error;
+            unsigned long long cleanedSize = [VICacheManager cleanCacheWithSize:_writeBytes error:&error];
+            if (error) {
+                return;
+            }
+            self.leftSpace += cleanedSize;
+            
+            NSAssert(_leftSpace >= _writeBytes, @"cleanCacheWithSize:error: method error.");
+        }
+        self.leftSpace -= _writeBytes;
+    });
 }
 
 #pragma mark - Notification
