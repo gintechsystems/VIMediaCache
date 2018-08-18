@@ -298,7 +298,6 @@ didReceiveResponse:(NSURLResponse *)response
             }
             return;
         }
-        [self.cacheWorker save];
     }
     
 }
@@ -306,10 +305,6 @@ didReceiveResponse:(NSURLResponse *)response
 - (void)URLSession:(NSURLSession *)session
               task:(NSURLSessionTask *)task
 didCompleteWithError:(nullable NSError *)error {
-    if (self.canSaveToCache) {
-        [self.cacheWorker finishWritting];
-        [self.cacheWorker save];
-    }
     if (error) {
         if ([self.delegate respondsToSelector:@selector(actionWorker:didFinishWithError:)]) {
             [self.delegate actionWorker:self didFinishWithError:error];
@@ -318,6 +313,10 @@ didCompleteWithError:(nullable NSError *)error {
     } else {
         [self notifyDownloadProgressWithFlush:YES finished:YES];
         [self processActions];
+    }
+    if (self.canSaveToCache) {
+        [self.cacheWorker finishWritting];
+        [self.cacheWorker saveWithCompletion:nil];
     }
 }
 

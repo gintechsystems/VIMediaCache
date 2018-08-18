@@ -83,23 +83,23 @@ static const NSString *kConfigurationFileExtension = @"mt_cfg";
 
 - (long long)downloadedBytes {
     float bytes = 0;
-    @synchronized (self.internalCacheFragments) {
+//    @synchronized (self.internalCacheFragments) {
         for (NSValue *range in self.internalCacheFragments) {
             bytes += range.rangeValue.length;
         }
-    }
+//    }
     return bytes;
 }
 
 - (float)downloadSpeed {
     long long bytes = 0;
     NSTimeInterval time = 0;
-    @synchronized (self.downloadInfo) {
+//    @synchronized (self.downloadInfo) {
         for (NSArray *a in self.downloadInfo) {
             bytes += [[a firstObject] longLongValue];
             time += [[a lastObject] doubleValue];
         }
-    }
+//    }
     return bytes / 1024.0 / time;
 }
 
@@ -145,9 +145,9 @@ static const NSString *kConfigurationFileExtension = @"mt_cfg";
 #pragma mark - Update
 
 - (void)save {
-    @synchronized (self.internalCacheFragments) {
+//    @synchronized (self.internalCacheFragments) {
         [NSKeyedArchiver archiveRootObject:self toFile:self.filePath];
-    }
+//    }
 }
 
 - (void)addCacheFragment:(NSRange)fragment {
@@ -155,7 +155,7 @@ static const NSString *kConfigurationFileExtension = @"mt_cfg";
         return;
     }
     
-    @synchronized (self.internalCacheFragments) {
+//    @synchronized (self.internalCacheFragments) {
         NSMutableArray *internalCacheFragments = [self.internalCacheFragments mutableCopy];
         
         NSValue *fragmentValue = [NSValue valueWithRange:fragment];
@@ -211,13 +211,13 @@ static const NSString *kConfigurationFileExtension = @"mt_cfg";
         }
         
         self.internalCacheFragments = [internalCacheFragments copy];
-    }
+//    }
 }
 
 - (void)addDownloadedBytes:(long long)bytes spent:(NSTimeInterval)time {
-    @synchronized (self.downloadInfo) {
+//    @synchronized (self.downloadInfo) {
         self.downloadInfo = [self.downloadInfo arrayByAddingObject:@[@(bytes), @(time)]];
-    }
+//    }
 }
 
 @end

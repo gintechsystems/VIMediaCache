@@ -24,8 +24,7 @@
 
 - (void)setContentInfo:(VIContentInfo *)contentInfo error:(NSError **)error;
 
-- (void)save;
-
+- (void)saveWithCompletion:(void(^)(NSError *))completion;
 - (void)startWritting;
 - (void)finishWritting;
 

@@ -40,9 +40,12 @@ static NSString *VIMediaCacheErrorDoamin = @"com.vimediacache";
 
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    [self save];
-    [_readFileHandle closeFile];
-    [_writeFileHandle closeFile];
+    NSFileHandle *readHandle = self.readFileHandle;
+    NSFileHandle *writeHandle = self.writeFileHandle;
+    [self saveWithCompletion:^(NSError *error) {
+        [readHandle closeFile];
+        [writeHandle closeFile];
+    }];
 }
 
 - (instancetype)initWithURL:(NSURL *)url {
@@ -207,12 +210,21 @@ static NSString *VIMediaCacheErrorDoamin = @"com.vimediacache";
     }
 }
 
-- (void)save {
+- (void)saveWithCompletion:(void(^)(NSError *error))completion {
+    NSFileHandle *writeHandle = self.writeFileHandle;
+    VICacheConfiguration *configuration = self.internalCacheConfiguration;
     dispatch_async(self.fileWriteQueue, ^{
         @try {
-            [self.writeFileHandle synchronizeFile];
-            [self.internalCacheConfiguration save];
+            [writeHandle synchronizeFile];
+            [configuration save];
+            if (completion) {
+                completion(nil);
+            }
         } @catch (NSException *exception) {
+            if (completion) {
+                NSError *error = [NSError errorWithDomain:exception.name code:123 userInfo:@{NSLocalizedDescriptionKey: exception.reason, @"exception": exception}];
+                completion(error);
+            }
             NSLog(@"save data error %@", exception);
         }
     });
@@ -254,7 +266,7 @@ static NSString *VIMediaCacheErrorDoamin = @"com.vimediacache";
 #pragma mark - Notification
 
 - (void)applicationDidEnterBackground:(NSNotification *)notification {
-    [self save];
+    [self saveWithCompletion:nil];
 }
 
 @end
