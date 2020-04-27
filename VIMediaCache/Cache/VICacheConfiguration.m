@@ -8,14 +8,14 @@
 
 #import "VICacheConfiguration.h"
 #import "VICacheManager.h"
-#import <MobileCoreServices/MobileCoreServices.h>
+#import <CoreServices/CoreServices.h>
 
 static NSString *kFileNameKey = @"kFileNameKey";
 static NSString *kCacheFragmentsKey = @"kCacheFragmentsKey";
 static NSString *kDownloadInfoKey = @"kDownloadInfoKey";
 static NSString *kContentInfoKey = @"kContentInfoKey";
 static NSString *kURLKey = @"kURLKey";
-static const NSString *kConfigurationFileExtension = @"mt_cfg";
+static NSString *kConfigurationFileExtension = @"mt_cfg";
 
 @interface VICacheConfiguration () <NSCoding>
 

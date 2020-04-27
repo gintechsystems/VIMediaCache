@@ -10,7 +10,7 @@
 #import "VIMediaDownloader.h"
 #import "VIContentInfo.h"
 
-@import MobileCoreServices;
+@import CoreServices;
 @import AVFoundation;
 @import UIKit;
 

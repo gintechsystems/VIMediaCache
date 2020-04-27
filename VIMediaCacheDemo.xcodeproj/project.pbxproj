@@ -26,8 +26,7 @@
 		5FDCF2B01CEBF26800188E0C /* VIResourceLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 5FDCF29B1CEBF26800188E0C /* VIResourceLoader.m */; };
 		5FDCF2B11CEBF26800188E0C /* VIResourceLoaderManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5FDCF29D1CEBF26800188E0C /* VIResourceLoaderManager.m */; };
 		5FDCF2B21CEBF26800188E0C /* VIResourceLoadingRequestWorker.m in Sources */ = {isa = PBXBuildFile; fileRef = 5FDCF29F1CEBF26800188E0C /* VIResourceLoadingRequestWorker.m */; };
-		5FDCF2BA1CEBF74600188E0C /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5FDCF2B91CEBF74600188E0C /* MobileCoreServices.framework */; };
-		5FDCF2BC1CEBF76200188E0C /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5FDCF2BB1CEBF76200188E0C /* AVFoundation.framework */; };
+		BB7F080D2457269E0047692C /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB7F080C2457269E0047692C /* CoreServices.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,8 +78,8 @@
 		5FDCF29E1CEBF26800188E0C /* VIResourceLoadingRequestWorker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VIResourceLoadingRequestWorker.h; sourceTree = "<group>"; };
 		5FDCF29F1CEBF26800188E0C /* VIResourceLoadingRequestWorker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VIResourceLoadingRequestWorker.m; sourceTree = "<group>"; };
 		5FDCF2AD1CEBF26800188E0C /* VIMediaCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VIMediaCache.h; sourceTree = "<group>"; };
-		5FDCF2B91CEBF74600188E0C /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
-		5FDCF2BB1CEBF76200188E0C /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		BB7F080C2457269E0047692C /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		BB7F080E245726B70047692C /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,8 +87,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5FDCF2BC1CEBF76200188E0C /* AVFoundation.framework in Frameworks */,
-				5FDCF2BA1CEBF74600188E0C /* MobileCoreServices.framework in Frameworks */,
+				BB7F080D2457269E0047692C /* CoreServices.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -128,6 +126,7 @@
 				5F5FA60D1CEA2BE2004439D3 /* VIMediaCacheDemo */,
 				5F5FA6271CEA2BE2004439D3 /* VIMediaCacheDemoTests */,
 				5F5FA60C1CEA2BE2004439D3 /* Products */,
+				BB7F080B2457269E0047692C /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -144,15 +143,15 @@
 			isa = PBXGroup;
 			children = (
 				5FDCF2941CEBF26800188E0C /* VIMediaCache */,
+				5F5FA60E1CEA2BE2004439D3 /* Supporting Files */,
+				5F5FA61A1CEA2BE2004439D3 /* Assets.xcassets */,
 				5F5FA6111CEA2BE2004439D3 /* AppDelegate.h */,
 				5F5FA6121CEA2BE2004439D3 /* AppDelegate.m */,
 				5F5FA6141CEA2BE2004439D3 /* ViewController.h */,
 				5F5FA6151CEA2BE2004439D3 /* ViewController.m */,
 				5F5FA6171CEA2BE2004439D3 /* Main.storyboard */,
-				5F5FA61A1CEA2BE2004439D3 /* Assets.xcassets */,
 				5F5FA61C1CEA2BE2004439D3 /* LaunchScreen.storyboard */,
 				5F5FA61F1CEA2BE2004439D3 /* Info.plist */,
-				5F5FA60E1CEA2BE2004439D3 /* Supporting Files */,
 				5F5FA67D1CEA2D95004439D3 /* PlayerView.h */,
 				5F5FA67E1CEA2D95004439D3 /* PlayerView.m */,
 			);
@@ -162,8 +161,6 @@
 		5F5FA60E1CEA2BE2004439D3 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				5FDCF2BB1CEBF76200188E0C /* AVFoundation.framework */,
-				5FDCF2B91CEBF74600188E0C /* MobileCoreServices.framework */,
 				5F5FA60F1CEA2BE2004439D3 /* main.m */,
 			);
 			name = "Supporting Files";
@@ -203,6 +200,15 @@
 				5FDCF29F1CEBF26800188E0C /* VIResourceLoadingRequestWorker.m */,
 			);
 			path = ResourceLoader;
+			sourceTree = "<group>";
+		};
+		BB7F080B2457269E0047692C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				BB7F080E245726B70047692C /* AVFoundation.framework */,
+				BB7F080C2457269E0047692C /* CoreServices.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -254,7 +260,7 @@
 				TargetAttributes = {
 					5F5FA60A1CEA2BE2004439D3 = {
 						CreatedOnToolsVersion = 7.3.1;
-						DevelopmentTeam = 5DS6P2KWFQ;
+						DevelopmentTeam = HUHLMDNCW3;
 					};
 					5F5FA6231CEA2BE2004439D3 = {
 						CreatedOnToolsVersion = 7.3.1;
@@ -267,6 +273,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -401,7 +408,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -441,7 +448,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
@@ -452,9 +459,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = 5DS6P2KWFQ;
+				DEVELOPMENT_TEAM = HUHLMDNCW3;
 				INFOPLIST_FILE = VIMediaCacheDemo/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.vito.VIMediaCacheDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -465,9 +472,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = 5DS6P2KWFQ;
+				DEVELOPMENT_TEAM = HUHLMDNCW3;
 				INFOPLIST_FILE = VIMediaCacheDemo/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.vito.VIMediaCacheDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
