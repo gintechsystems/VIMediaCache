@@ -8,7 +8,7 @@
 
 #import "VIMediaDownloader.h"
 #import "VIContentInfo.h"
-#import <MobileCoreServices/MobileCoreServices.h>
+#import <CoreServices/CoreServices.h>
 #import "VICacheSessionManager.h"
 
 #import "VIMediaCacheWorker.h"
